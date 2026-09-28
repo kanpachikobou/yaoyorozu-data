@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "project_root": "\\\\?\\E:\\yaoyorozu-data",
+  "open_files": [
+    ".gitignore",
+    "src/main.rs",
+    "Cargo.toml"
+  ],
+  "active_file": "src/main.rs",
+  "recent_files": [
+    "src/main.rs",
+    "Cargo.toml",
+    ".gitignore"
+  ],
+  "sidebar": "explorer",
+  "bottom": "task_log",
+  "sidebar_width": 280,
+  "bottom_height": 145,
+  "expanded_dirs": [
+    "src"
+  ],
+  "window_x": 1228,
+  "window_y": 52,
+  "window_width": 1272,
+  "window_height": 1268,
+  "maximized": false
+}
