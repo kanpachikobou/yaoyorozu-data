@@ -530,3 +530,38 @@ pub fn literal_to_fumi_value(value: &str) -> Result<FumiValue> {
 pub fn expression_to_fumi_value(value: &str) -> Result<FumiValue> {
     literal_to_fumi_value(value)
 }
+
+
+/// 詞の実行時変数を保持する軽量なコンテキスト。
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct FumiContext {
+    variables: std::collections::BTreeMap<String, FumiValue>,
+}
+
+impl FumiContext {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn set(&mut self, name: impl Into<String>, value: FumiValue) {
+        self.variables.insert(name.into(), value);
+    }
+
+    pub fn get(&self, name: &str) -> Option<&FumiValue> {
+        self.variables.get(name)
+    }
+
+    pub fn remove(&mut self, name: &str) -> Option<FumiValue> {
+        self.variables.remove(name)
+    }
+
+    pub fn contains(&self, name: &str) -> bool {
+        self.variables.contains_key(name)
+    }
+
+    pub fn resolve(&self, name: &str) -> Result<FumiValue> {
+        self.get(name)
+            .cloned()
+            .ok_or_else(|| DataError::Message(format!("変数が見つかりません: {name}")))
+    }
+}
