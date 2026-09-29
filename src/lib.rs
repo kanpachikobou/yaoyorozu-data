@@ -16,7 +16,7 @@ pub use error::{DataError, Result};
 pub use fumi::FumiData;
 pub use fumi_command::{FumiCommand, FumiResult};
 pub use fumi_runtime::FumiRuntime;
-pub use fumi_adapter::{command_from_arguments, command_from_verb, execute_arguments, execute_request, FumiArgument, FumiDataRequest, FumiDataVerb, FumiValue};
+pub use fumi_adapter::{command_from_arguments, command_from_verb, execute_arguments, execute_request, FumiArgument, FumiDataRequest, FumiDataVerb, FumiValue, literal_to_fumi_value};
 pub use game_data::GameData;
 pub use store::DataStore;
 pub use validate::{FieldRule, FieldType, Schema};
