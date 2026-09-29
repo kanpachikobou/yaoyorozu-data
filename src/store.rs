@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use crate::{csv, json, DataError, DataValue, Result};
+use crate::{csv, json, query, DataError, DataValue, Result};
 
 /// CSV / JSON ファイルを DataValue として読み書きする共通ストア。
 #[derive(Debug, Clone, PartialEq)]
@@ -50,6 +50,33 @@ impl DataStore {
     /// 保持しているデータを変更可能な形で取得する。
     pub fn value_mut(&mut self) -> &mut DataValue {
         &mut self.value
+    }
+
+    /// 指定フィールドに一致する最初のデータを取得する。
+    pub fn find<'a>(
+        &'a self,
+        field: &str,
+        expected: &DataValue,
+    ) -> Result<Option<&'a DataValue>> {
+        query::find(&self.value, field, expected)
+    }
+
+    /// 指定フィールドに一致する最初のデータを変更可能な形で取得する。
+    pub fn find_mut<'a>(
+        &'a mut self,
+        field: &str,
+        expected: &DataValue,
+    ) -> Result<Option<&'a mut DataValue>> {
+        query::find_mut(&mut self.value, field, expected)
+    }
+
+    /// 指定フィールドに一致するすべてのデータを取得する。
+    pub fn find_all<'a>(
+        &'a self,
+        field: &str,
+        expected: &DataValue,
+    ) -> Result<Vec<&'a DataValue>> {
+        query::find_all(&self.value, field, expected)
     }
 
     /// DataValueを取り出す。
@@ -121,6 +148,35 @@ mod tests {
 
         let _ = fs::remove_file(input_path);
         let _ = fs::remove_file(output_path);
+    }
+
+    #[test]
+    fn find_and_modify_data() {
+        let mut store = DataStore::new(DataValue::Array(vec![
+            DataValue::Object(std::collections::BTreeMap::from([
+                ("id".to_string(), DataValue::Number(1.0)),
+                ("name".to_string(), DataValue::String("狐".to_string())),
+                ("hp".to_string(), DataValue::Number(100.0)),
+            ])),
+            DataValue::Object(std::collections::BTreeMap::from([
+                ("id".to_string(), DataValue::Number(2.0)),
+                ("name".to_string(), DataValue::String("鬼".to_string())),
+                ("hp".to_string(), DataValue::Number(250.0)),
+            ])),
+        ]));
+
+        let expected = DataValue::String("狐".to_string());
+        let enemy = store.find_mut("name", &expected).unwrap().unwrap();
+
+        enemy
+            .set("hp", DataValue::Number(150.0))
+            .expect("HPの更新に失敗しました。");
+
+        let enemy = store.find("name", &expected).unwrap().unwrap();
+        assert_eq!(
+            enemy.get("hp").and_then(DataValue::as_f64),
+            Some(150.0)
+        );
     }
 
     #[test]
