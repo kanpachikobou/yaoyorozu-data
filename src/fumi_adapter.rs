@@ -12,6 +12,19 @@ pub enum FumiValue {
 }
 
 impl FumiValue {
+    pub fn from_data_value(value: DataValue) -> Self {
+        match value {
+            DataValue::String(value) => Self::文字列(value),
+            DataValue::Number(value) => Self::数値(value),
+            DataValue::Bool(value) => Self::真偽(value),
+            DataValue::Array(values) => Self::配列(
+                values.into_iter().map(Self::from_data_value).collect(),
+            ),
+            DataValue::Null => Self::なし,
+            DataValue::Object(_) => Self::なし,
+        }
+    }
+
     pub fn into_data_value(self) -> DataValue {
         match self {
             Self::文字列(value) => DataValue::String(value),
