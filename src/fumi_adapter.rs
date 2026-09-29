@@ -121,6 +121,74 @@ pub fn command_from_verb(
     .into_command()
 }
 
+
+/// 既存の詞ASTにある「命令引数（助詞 + 値）」を
+/// データ命令へ変換するための中間表現。
+#[derive(Debug, Clone, PartialEq)]
+pub struct FumiArgument {
+    pub 助詞: Option<String>,
+    pub 値: DataValue,
+}
+
+impl FumiArgument {
+    pub fn new(助詞: Option<String>, 値: DataValue) -> Self {
+        Self { 助詞, 値 }
+    }
+}
+
+/// 命令引数の助詞を使って、詞の命令をデータ命令へ変換する。
+///
+/// 想定する引数名:
+/// - 種別 / 種類 → データカテゴリ
+/// - ID / 識別子 → レコードID
+/// - 項目 / フィールド → 変更対象フィールド
+/// - 値 → 設定値
+///
+/// 詞パーサーはASTを解析した後、この関数へ
+/// 命令の動詞と引数を渡すだけでよい。
+pub fn command_from_arguments(
+    verb: &str,
+    arguments: &[FumiArgument],
+) -> Result<FumiCommand> {
+    let category = arguments
+        .iter()
+        .find(|argument| matches!(argument.助詞.as_deref(), Some("種別" | "種類")))
+        .map(|argument| data_value_to_string(&argument.値))
+        .transpose()?
+        .ok_or_else(|| DataError::Message("データ命令には種別が必要です".into()))?;
+
+    let id = arguments
+        .iter()
+        .find(|argument| matches!(argument.助詞.as_deref(), Some("ID" | "id" | "識別子")))
+        .map(|argument| argument.値.clone())
+        .ok_or_else(|| DataError::Message("データ命令にはIDが必要です".into()))?;
+
+    let field = arguments
+        .iter()
+        .find(|argument| matches!(argument.助詞.as_deref(), Some("項目" | "フィールド")))
+        .map(|argument| data_value_to_string(&argument.値))
+        .transpose()?;
+
+    let value = arguments
+        .iter()
+        .find(|argument| matches!(argument.助詞.as_deref(), Some("値")))
+        .map(|argument| argument.値.clone());
+
+    command_from_verb(verb, category, id, field, value)
+}
+
+fn data_value_to_string(value: &DataValue) -> Result<String> {
+    match value {
+        DataValue::String(value) => Ok(value.clone()),
+        DataValue::Number(value) => Ok(value.to_string()),
+        DataValue::Bool(value) => Ok(value.to_string()),
+        DataValue::Null => Err(DataError::Message("なしは文字列として扱えません".into())),
+        DataValue::Array(_) | DataValue::Object(_) => Err(DataError::Message(
+            "配列やオブジェクトは文字列引数として扱えません".into(),
+        )),
+    }
+}
+
 /// データ命令を直接実行する便利関数。
 pub fn execute_request(
     data: &mut FumiData<'_>,
@@ -157,6 +225,64 @@ mod tests {
             DataStore::new(DataValue::Array(Vec::new())),
             DataStore::new(DataValue::Array(Vec::new())),
         )
+    }
+
+    #[test]
+    fn converts_argument_list() {
+        let arguments = vec![
+            FumiArgument::new(
+                Some("種別".into()),
+                DataValue::String("enemy".into()),
+            ),
+            FumiArgument::new(Some("ID".into()), DataValue::Number(1001.0)),
+        ];
+
+        let command = command_from_arguments("取得", &arguments).unwrap();
+
+        assert_eq!(
+            command,
+            FumiCommand::Get {
+                category: "enemy".into(),
+                id: DataValue::Number(1001.0),
+            }
+        );
+    }
+
+    #[test]
+    fn converts_set_arguments() {
+        let arguments = vec![
+            FumiArgument::new(
+                Some("種別".into()),
+                DataValue::String("enemy".into()),
+            ),
+            FumiArgument::new(Some("ID".into()), DataValue::Number(1001.0)),
+            FumiArgument::new(
+                Some("項目".into()),
+                DataValue::String("hp".into()),
+            ),
+            FumiArgument::new(Some("値".into()), DataValue::Number(180.0)),
+        ];
+
+        let command = command_from_arguments("設定", &arguments).unwrap();
+
+        assert_eq!(
+            command,
+            FumiCommand::SetField {
+                category: "enemy".into(),
+                id: DataValue::Number(1001.0),
+                field: "hp".into(),
+                value: DataValue::Number(180.0),
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_missing_category() {
+        let arguments = vec![
+            FumiArgument::new(Some("ID".into()), DataValue::Number(1001.0)),
+        ];
+
+        assert!(command_from_arguments("取得", &arguments).is_err());
     }
 
     #[test]
