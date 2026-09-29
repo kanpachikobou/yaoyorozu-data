@@ -13,7 +13,6 @@ pub struct GameData {
 }
 
 impl GameData {
-    /// 個別のDataStoreからゲームデータを構築する。
     pub fn new(
         enemies: DataStore,
         items: DataStore,
@@ -30,9 +29,6 @@ impl GameData {
         }
     }
 
-    /// ディレクトリ内の標準ファイル名からゲームデータを一括ロードする。
-    ///
-    /// enemies.json / items.json / skills.json / quests.json / recipes.json を読み込む。
     pub fn load_from_dir<P: AsRef<Path>>(directory: P) -> Result<Self> {
         let directory = directory.as_ref();
 
@@ -46,15 +42,12 @@ impl GameData {
     }
 
     /// ゲームデータをロードして、すぐに標準スキーマで検証する。
-    ///
-    /// ゲーム起動時の基本パイプラインとして利用する。
     pub fn load_and_validate_from_dir<P: AsRef<Path>>(directory: P) -> Result<Self> {
         let data = Self::load_from_dir(directory)?;
         data.validate()?;
         Ok(data)
     }
 
-    /// すべてのゲームデータを対応するスキーマで検証する。
     pub fn validate(&self) -> Result<()> {
         self.enemies.validate(&crate::validate::game_enemy_schema())?;
         self.items.validate(&crate::validate::game_item_schema())?;
@@ -64,77 +57,62 @@ impl GameData {
         Ok(())
     }
 
-    /// 敵データをIDで取得する。
     pub fn enemy(&self, id: &DataValue) -> Result<Option<&DataValue>> {
         self.enemies.find_by_id(id)
     }
 
-    /// アイテムデータをIDで取得する。
     pub fn item(&self, id: &DataValue) -> Result<Option<&DataValue>> {
         self.items.find_by_id(id)
     }
 
-    /// 敵データをIDで変更可能な形で取得する。
     pub fn enemy_mut(&mut self, id: &DataValue) -> Result<Option<&mut DataValue>> {
         self.enemies.find_by_id_mut(id)
     }
 
-    /// アイテムデータをIDで変更可能な形で取得する。
     pub fn item_mut(&mut self, id: &DataValue) -> Result<Option<&mut DataValue>> {
         self.items.find_by_id_mut(id)
     }
 
-    /// スキルデータをIDで取得する。
     pub fn skill(&self, id: &DataValue) -> Result<Option<&DataValue>> {
         self.skills.find_by_id(id)
     }
 
-    /// スキルデータをIDで変更可能な形で取得する。
     pub fn skill_mut(&mut self, id: &DataValue) -> Result<Option<&mut DataValue>> {
         self.skills.find_by_id_mut(id)
     }
 
-    /// クエストデータをIDで取得する。
     pub fn quest(&self, id: &DataValue) -> Result<Option<&DataValue>> {
         self.quests.find_by_id(id)
     }
 
-    /// クエストデータをIDで変更可能な形で取得する。
     pub fn quest_mut(&mut self, id: &DataValue) -> Result<Option<&mut DataValue>> {
         self.quests.find_by_id_mut(id)
     }
 
-    /// レシピデータをIDで取得する。
     pub fn recipe(&self, id: &DataValue) -> Result<Option<&DataValue>> {
         self.recipes.find_by_id(id)
     }
 
-    /// レシピデータをIDで変更可能な形で取得する。
     pub fn recipe_mut(&mut self, id: &DataValue) -> Result<Option<&mut DataValue>> {
         self.recipes.find_by_id_mut(id)
     }
 
-    /// 敵データがIDで存在するか確認する。
     pub fn has_enemy(&self, id: &DataValue) -> Result<bool> {
         Ok(self.enemy(id)?.is_some())
     }
 
-    /// アイテムデータがIDで存在するか確認する。
     pub fn has_item(&self, id: &DataValue) -> Result<bool> {
         Ok(self.item(id)?.is_some())
     }
 
-    /// スキルデータがIDで存在するか確認する。
     pub fn has_skill(&self, id: &DataValue) -> Result<bool> {
         Ok(self.skill(id)?.is_some())
     }
 
-    /// クエストデータがIDで存在するか確認する。
     pub fn has_quest(&self, id: &DataValue) -> Result<bool> {
         Ok(self.quest(id)?.is_some())
     }
 
-    /// レシピデータがIDで存在するか確認する。
     pub fn has_recipe(&self, id: &DataValue) -> Result<bool> {
         Ok(self.recipe(id)?.is_some())
     }
@@ -213,10 +191,6 @@ mod tests {
             ("result_item_id", DataValue::Number(2001.0)),
             ("quantity", DataValue::Number(1.0)),
         ])
-    }
-
-    fn empty_store() -> DataStore {
-        DataStore::new(DataValue::Array(Vec::new()))
     }
 
     fn valid_game_data() -> GameData {
