@@ -134,6 +134,21 @@ impl FumiArgument {
     pub fn new(助詞: Option<String>, 値: DataValue) -> Self {
         Self { 助詞, 値 }
     }
+
+    pub fn 文字列(助詞: impl Into<String>, 値: impl Into<String>) -> Self {
+        Self::new(
+            Some(助詞.into()),
+            DataValue::String(値.into()),
+        )
+    }
+
+    pub fn 数値(助詞: impl Into<String>, 値: f64) -> Self {
+        Self::new(Some(助詞.into()), DataValue::Number(値))
+    }
+
+    pub fn 真偽(助詞: impl Into<String>, 値: bool) -> Self {
+        Self::new(Some(助詞.into()), DataValue::Bool(値))
+    }
 }
 
 /// 命令引数の助詞を使って、詞の命令をデータ命令へ変換する。
@@ -175,6 +190,16 @@ pub fn command_from_arguments(
         .map(|argument| argument.値.clone());
 
     command_from_verb(verb, category, id, field, value)
+}
+
+/// 引数列からコマンドを作成し、そのまま詞データへ実行する。
+pub fn execute_arguments(
+    data: &mut FumiData<'_>,
+    verb: &str,
+    arguments: &[FumiArgument],
+) -> Result<FumiResult> {
+    let command = command_from_arguments(verb, arguments)?;
+    command.execute(data)
 }
 
 fn data_value_to_string(value: &DataValue) -> Result<String> {
