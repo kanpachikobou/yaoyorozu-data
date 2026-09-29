@@ -45,6 +45,15 @@ impl GameData {
         ))
     }
 
+    /// ゲームデータをロードして、すぐに標準スキーマで検証する。
+    ///
+    /// ゲーム起動時の基本パイプラインとして利用する。
+    pub fn load_and_validate_from_dir<P: AsRef<Path>>(directory: P) -> Result<Self> {
+        let data = Self::load_from_dir(directory)?;
+        data.validate()?;
+        Ok(data)
+    }
+
     /// すべてのゲームデータを対応するスキーマで検証する。
     pub fn validate(&self) -> Result<()> {
         self.enemies.validate(&crate::validate::game_enemy_schema())?;
@@ -75,7 +84,6 @@ impl GameData {
         self.items.find_by_id_mut(id)
     }
 
-
     /// スキルデータをIDで取得する。
     pub fn skill(&self, id: &DataValue) -> Result<Option<&DataValue>> {
         self.skills.find_by_id(id)
@@ -86,7 +94,6 @@ impl GameData {
         self.skills.find_by_id_mut(id)
     }
 
-
     /// クエストデータをIDで取得する。
     pub fn quest(&self, id: &DataValue) -> Result<Option<&DataValue>> {
         self.quests.find_by_id(id)
@@ -96,7 +103,6 @@ impl GameData {
     pub fn quest_mut(&mut self, id: &DataValue) -> Result<Option<&mut DataValue>> {
         self.quests.find_by_id_mut(id)
     }
-
 
     /// レシピデータをIDで取得する。
     pub fn recipe(&self, id: &DataValue) -> Result<Option<&DataValue>> {
@@ -132,7 +138,6 @@ impl GameData {
     pub fn has_recipe(&self, id: &DataValue) -> Result<bool> {
         Ok(self.recipe(id)?.is_some())
     }
-
 }
 
 fn load_required(directory: &Path, filename: &str) -> Result<DataStore> {
@@ -181,19 +186,52 @@ mod tests {
         ])
     }
 
+    fn skill(id: f64) -> DataValue {
+        row(&[
+            ("id", DataValue::Number(id)),
+            ("name", DataValue::String("火炎斬".into())),
+            ("element", DataValue::String("火".into())),
+            ("power", DataValue::Number(50.0)),
+            ("cost", DataValue::Number(10.0)),
+        ])
+    }
+
+    fn quest(id: f64) -> DataValue {
+        row(&[
+            ("id", DataValue::Number(id)),
+            ("name", DataValue::String("川越のはじまり".into())),
+            ("type", DataValue::String("main".into())),
+            ("level", DataValue::Number(1.0)),
+        ])
+    }
+
+    fn recipe(id: f64) -> DataValue {
+        row(&[
+            ("id", DataValue::Number(id)),
+            ("name", DataValue::String("焼き芋".into())),
+            ("category", DataValue::String("料理".into())),
+            ("result_item_id", DataValue::Number(2001.0)),
+            ("quantity", DataValue::Number(1.0)),
+        ])
+    }
+
     fn empty_store() -> DataStore {
         DataStore::new(DataValue::Array(Vec::new()))
     }
 
-    #[test]
-    fn creates_game_data() {
-        let data = GameData::new(
+    fn valid_game_data() -> GameData {
+        GameData::new(
             DataStore::new(DataValue::Array(vec![enemy(1001.0)])),
             DataStore::new(DataValue::Array(vec![item(2001.0)])),
-            empty_store(),
-            empty_store(),
-            empty_store(),
-        );
+            DataStore::new(DataValue::Array(vec![skill(3001.0)])),
+            DataStore::new(DataValue::Array(vec![quest(4001.0)])),
+            DataStore::new(DataValue::Array(vec![recipe(5001.0)])),
+        )
+    }
+
+    #[test]
+    fn creates_game_data() {
+        let data = valid_game_data();
 
         assert!(data.enemy(&DataValue::Number(1001.0)).unwrap().is_some());
         assert!(data.item(&DataValue::Number(2001.0)).unwrap().is_some());
@@ -201,32 +239,69 @@ mod tests {
 
     #[test]
     fn validates_game_data() {
-        let data = GameData::new(
-            DataStore::new(DataValue::Array(vec![enemy(1001.0)])),
-            DataStore::new(DataValue::Array(vec![item(2001.0)])),
-            empty_store(),
-            empty_store(),
-            empty_store(),
-        );
-
-        assert!(data.validate().is_ok());
+        assert!(valid_game_data().validate().is_ok());
     }
 
     #[test]
-    fn loads_all_game_data_from_directory() {
-        let directory = std::env::temp_dir().join("yaoyorozu-data-game-data-test");
-        let _ = fs::create_dir_all(&directory);
+    fn loads_and_validates_all_game_data_from_directory() {
+        let directory = std::env::temp_dir().join("yaoyorozu-data-game-data-valid-test");
+        let _ = fs::remove_dir_all(&directory);
+        fs::create_dir_all(&directory).unwrap();
 
-        fs::write(directory.join("enemies.json"), r#"[{"id":1001,"name":"狐","hp":100,"element":"火","level":1}]"#).unwrap();
-        fs::write(directory.join("items.json"), r#"[{"id":2001,"name":"川越芋","category":"食材","price":100}]"#).unwrap();
+        fs::write(
+            directory.join("enemies.json"),
+            r#"[{"id":1001,"name":"狐","hp":100,"element":"火","level":1}]"#,
+        )
+        .unwrap();
+        fs::write(
+            directory.join("items.json"),
+            r#"[{"id":2001,"name":"川越芋","category":"食材","price":100}]"#,
+        )
+        .unwrap();
+        fs::write(
+            directory.join("skills.json"),
+            r#"[{"id":3001,"name":"火炎斬","element":"火","power":50,"cost":10}]"#,
+        )
+        .unwrap();
+        fs::write(
+            directory.join("quests.json"),
+            r#"[{"id":4001,"name":"川越のはじまり","type":"main","level":1}]"#,
+        )
+        .unwrap();
+        fs::write(
+            directory.join("recipes.json"),
+            r#"[{"id":5001,"name":"焼き芋","category":"料理","result_item_id":2001,"quantity":1}]"#,
+        )
+        .unwrap();
+
+        let data = GameData::load_and_validate_from_dir(&directory).unwrap();
+
+        assert!(data.enemy(&DataValue::Number(1001.0)).unwrap().is_some());
+        assert!(data.skill(&DataValue::Number(3001.0)).unwrap().is_some());
+
+        let _ = fs::remove_dir_all(directory);
+    }
+
+    #[test]
+    fn invalid_game_data_is_rejected_during_load() {
+        let directory = std::env::temp_dir().join("yaoyorozu-data-game-data-invalid-test");
+        let _ = fs::remove_dir_all(&directory);
+        fs::create_dir_all(&directory).unwrap();
+
+        fs::write(
+            directory.join("enemies.json"),
+            r#"[{"id":1001,"name":"狐","element":"火","level":1}]"#,
+        )
+        .unwrap();
+        fs::write(directory.join("items.json"), "[]").unwrap();
         fs::write(directory.join("skills.json"), "[]").unwrap();
         fs::write(directory.join("quests.json"), "[]").unwrap();
         fs::write(directory.join("recipes.json"), "[]").unwrap();
 
-        let data = GameData::load_from_dir(&directory).unwrap();
+        let result = GameData::load_and_validate_from_dir(&directory);
 
-        assert!(data.enemy(&DataValue::Number(1001.0)).unwrap().is_some());
-        assert!(data.item(&DataValue::Number(2001.0)).unwrap().is_some());
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("必須項目"));
 
         let _ = fs::remove_dir_all(directory);
     }
@@ -240,7 +315,10 @@ mod tests {
         let result = GameData::load_from_dir(&directory);
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("ゲームデータがありません"));
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("ゲームデータがありません"));
 
         let _ = fs::remove_dir_all(directory);
     }
