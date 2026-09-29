@@ -571,3 +571,55 @@ impl FumiContext {
 pub fn resolve_fumi_variable(context: &FumiContext, name: &str) -> Result<FumiValue> {
     context.resolve(name)
 }
+
+
+/// 詞側で評価可能な二項演算子。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FumiBinaryOperator {
+    加算,
+    減算,
+    乗算,
+    除算,
+}
+
+impl FumiBinaryOperator {
+    pub fn from_str(value: &str) -> Option<Self> {
+        match value {
+            "+" | "加算" => Some(Self::加算),
+            "-" | "減算" => Some(Self::減算),
+            "*" | "乗算" => Some(Self::乗算),
+            "/" | "除算" => Some(Self::除算),
+            _ => None,
+        }
+    }
+}
+
+/// 具体値2つを使った二項演算を評価する。
+pub fn evaluate_binary(
+    left: FumiValue,
+    operator: FumiBinaryOperator,
+    right: FumiValue,
+) -> Result<FumiValue> {
+    let (left, right) = match (left, right) {
+        (FumiValue::数値(left), FumiValue::数値(right)) => (left, right),
+        _ => {
+            return Err(DataError::Message(
+                "二項演算には数値が必要です".to_string(),
+            ));
+        }
+    };
+
+    let value = match operator {
+        FumiBinaryOperator::加算 => left + right,
+        FumiBinaryOperator::減算 => left - right,
+        FumiBinaryOperator::乗算 => left * right,
+        FumiBinaryOperator::除算 => {
+            if right == 0.0 {
+                return Err(DataError::Message("0では除算できません".to_string()));
+            }
+            left / right
+        }
+    };
+
+    Ok(FumiValue::数値(value))
+}
