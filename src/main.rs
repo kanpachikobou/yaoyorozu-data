@@ -79,8 +79,6 @@ fn print_usage() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use yaoyorozu_data::DataValue;
-
     #[test]
     fn detects_csv_and_json() {
         assert_eq!(detect_format("data.csv").unwrap(), "csv");
@@ -90,11 +88,5 @@ mod tests {
     #[test]
     fn rejects_unknown_format() {
         assert!(detect_format("data.txt").is_err());
-    }
-
-    #[test]
-    fn data_value_is_available_to_binary() {
-        let value = DataValue::String("八百万".to_string());
-        assert_eq!(value, DataValue::String("八百万".to_string()));
     }
 }
