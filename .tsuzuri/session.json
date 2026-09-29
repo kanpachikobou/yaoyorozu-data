@@ -2,22 +2,33 @@
   "version": 2,
   "project_root": "\\\\?\\E:\\yaoyorozu-data",
   "open_files": [
-    ".gitignore",
     "src/main.rs",
-    "Cargo.toml"
+    "src/lib.rs",
+    "src/error.rs"
   ],
   "active_file": "src/main.rs",
   "recent_files": [
     "src/main.rs",
-    "Cargo.toml",
-    ".gitignore"
+    "src/lib.rs",
+    "src/error.rs",
+    "src/data.rs",
+    ".gitignore",
+    "Cargo.lock",
+    "Cargo.toml"
   ],
-  "sidebar": "explorer",
-  "bottom": "task_log",
+  "sidebar": "git",
+  "bottom": "git_log",
   "sidebar_width": 280,
   "bottom_height": 145,
   "expanded_dirs": [
-    "src"
+    "data",
+    "data/input",
+    "data/output",
+    "src",
+    "src/converter",
+    "src/csv",
+    "src/json",
+    "src/validator"
   ],
   "window_x": 1228,
   "window_y": 52,
