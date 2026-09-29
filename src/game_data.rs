@@ -94,7 +94,6 @@ fn load_required(directory: &Path, filename: &str) -> Result<DataStore> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::BTreeMap;
     use std::fs;
 
     fn row(fields: &[(&str, DataValue)]) -> DataValue {
