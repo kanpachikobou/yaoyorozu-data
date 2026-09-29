@@ -156,6 +156,35 @@ pub fn game_item_schema() -> Schema {
         .field(FieldRule::required("price", FieldType::Number))
 }
 
+/// ゲームのスキルデータ用スキーマ。
+pub fn game_skill_schema() -> Schema {
+    Schema::new("スキルデータ")
+        .field(FieldRule::required("id", FieldType::Number))
+        .field(FieldRule::required("name", FieldType::String))
+        .field(FieldRule::required("element", FieldType::String))
+        .field(FieldRule::required("power", FieldType::Number))
+        .field(FieldRule::required("cost", FieldType::Number))
+}
+
+/// ゲームのクエストデータ用スキーマ。
+pub fn game_quest_schema() -> Schema {
+    Schema::new("クエストデータ")
+        .field(FieldRule::required("id", FieldType::Number))
+        .field(FieldRule::required("name", FieldType::String))
+        .field(FieldRule::required("type", FieldType::String))
+        .field(FieldRule::required("level", FieldType::Number))
+}
+
+/// ゲームのレシピデータ用スキーマ。
+pub fn game_recipe_schema() -> Schema {
+    Schema::new("レシピデータ")
+        .field(FieldRule::required("id", FieldType::Number))
+        .field(FieldRule::required("name", FieldType::String))
+        .field(FieldRule::required("category", FieldType::String))
+        .field(FieldRule::required("result_item_id", FieldType::Number))
+        .field(FieldRule::required("quantity", FieldType::Number))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
