@@ -522,3 +522,11 @@ pub fn literal_to_fumi_value(value: &str) -> Result<FumiValue> {
 
     Ok(FumiValue::文字列(value.to_string()))
 }
+
+
+/// 式のうち、すでに具体値になっているものだけをFumiValueへ変換する。
+///
+/// 変数と二項式は実行時評価が必要なため、この層では扱わない。
+pub fn expression_to_fumi_value(value: &str) -> Result<FumiValue> {
+    literal_to_fumi_value(value)
+}
