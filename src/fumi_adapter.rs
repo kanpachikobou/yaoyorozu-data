@@ -437,3 +437,59 @@ mod tests {
             .contains("データ操作に対応していない詞命令"));
     }
 }
+
+
+#[cfg(test)]
+mod fumi_value_tests {
+    use super::FumiValue;
+    use crate::DataValue;
+
+    #[test]
+    fn converts_scalar_values() {
+        assert_eq!(
+            FumiValue::文字列("狐".into()).into_data_value(),
+            DataValue::String("狐".into())
+        );
+        assert_eq!(FumiValue::数値(100.0).into_data_value(), DataValue::Number(100.0));
+        assert_eq!(FumiValue::真偽(true).into_data_value(), DataValue::Bool(true));
+        assert_eq!(FumiValue::なし.into_data_value(), DataValue::Null);
+    }
+
+    #[test]
+    fn converts_nested_array() {
+        let value = FumiValue::配列(vec![
+            FumiValue::文字列("川越芋".into()),
+            FumiValue::数値(2001.0),
+            FumiValue::真偽(true),
+        ]);
+
+        assert_eq!(
+            value.into_data_value(),
+            DataValue::Array(vec![
+                DataValue::String("川越芋".into()),
+                DataValue::Number(2001.0),
+                DataValue::Bool(true),
+            ])
+        );
+    }
+
+    #[test]
+    fn converts_data_value_back_to_fumi_value() {
+        let value = DataValue::Array(vec![
+            DataValue::String("薬草".into()),
+            DataValue::Number(50.0),
+            DataValue::Bool(false),
+            DataValue::Null,
+        ]);
+
+        assert_eq!(
+            FumiValue::from_data_value(value),
+            FumiValue::配列(vec![
+                FumiValue::文字列("薬草".into()),
+                FumiValue::数値(50.0),
+                FumiValue::真偽(false),
+                FumiValue::なし,
+            ])
+        );
+    }
+}
