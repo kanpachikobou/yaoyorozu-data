@@ -680,3 +680,41 @@ impl FumiAstExpression {
         }
     }
 }
+
+
+#[cfg(test)]
+mod ast_bridge_tests {
+    use super::{
+        evaluate_expression, FumiAstExpression, FumiBinaryOperator, FumiContext, FumiValue,
+    };
+
+    #[test]
+    fn ast_expression_converts_and_evaluates() {
+        let mut context = FumiContext::new();
+        context.set("敵ID", FumiValue::数値(1001.0));
+
+        let ast = FumiAstExpression::二項 {
+            左: Box::new(FumiAstExpression::変数("敵ID".into())),
+            演算子: FumiBinaryOperator::加算,
+            右: Box::new(FumiAstExpression::値(FumiValue::数値(1.0))),
+        };
+
+        let expression = ast.into_expression();
+        assert_eq!(
+            evaluate_expression(&expression, &context).unwrap(),
+            FumiValue::数値(1002.0)
+        );
+    }
+
+    #[test]
+    fn ast_literal_expression_evaluates() {
+        let ast = FumiAstExpression::値(FumiValue::文字列("川越芋".into()));
+        let expression = ast.into_expression();
+        let context = FumiContext::new();
+
+        assert_eq!(
+            evaluate_expression(&expression, &context).unwrap(),
+            FumiValue::文字列("川越芋".into())
+        );
+    }
+}
