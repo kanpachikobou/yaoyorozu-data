@@ -493,3 +493,32 @@ mod fumi_value_tests {
         );
     }
 }
+
+
+/// ASTのリテラル値をFumiValueへ渡すための変換。
+///
+/// 変数や二項式の評価は詞ランタイム側の責務とし、
+/// データ層では具体値だけを扱う。
+pub fn literal_to_fumi_value(value: &str) -> Result<FumiValue> {
+    if value == "真" {
+        return Ok(FumiValue::真偽(true));
+    }
+    if value == "偽" {
+        return Ok(FumiValue::真偽(false));
+    }
+    if value == "なし" {
+        return Ok(FumiValue::なし);
+    }
+
+    if let Ok(number) = value.parse::<f64>() {
+        return Ok(FumiValue::数値(number));
+    }
+
+    if value.starts_with('「') && value.ends_with('」') {
+        return Ok(FumiValue::文字列(
+            value[3..value.len() - 3].to_string(),
+        ));
+    }
+
+    Ok(FumiValue::文字列(value.to_string()))
+}
