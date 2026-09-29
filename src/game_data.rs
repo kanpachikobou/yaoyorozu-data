@@ -49,6 +49,9 @@ impl GameData {
     pub fn validate(&self) -> Result<()> {
         self.enemies.validate(&crate::validate::game_enemy_schema())?;
         self.items.validate(&crate::validate::game_item_schema())?;
+        self.skills.validate(&crate::validate::game_skill_schema())?;
+        self.quests.validate(&crate::validate::game_quest_schema())?;
+        self.recipes.validate(&crate::validate::game_recipe_schema())?;
         Ok(())
     }
 
