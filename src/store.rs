@@ -79,6 +79,20 @@ impl DataStore {
         query::find_all(&self.value, field, expected)
     }
 
+    /// 配列データへ新しい値を追加する。
+    pub fn push(&mut self, value: DataValue) -> Result<()> {
+        self.value.push(value)
+    }
+
+    /// 指定フィールドに一致する最初のデータを削除する。
+    pub fn remove_first(
+        &mut self,
+        field: &str,
+        expected: &DataValue,
+    ) -> Result<Option<DataValue>> {
+        query::remove_first(&mut self.value, field, expected)
+    }
+
     /// DataValueを取り出す。
     pub fn into_value(self) -> DataValue {
         self.value
