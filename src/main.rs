@@ -1,7 +1,7 @@
 use std::env;
 use std::fs;
 
-use yaoyorozu_data::{csv, json, DataError, Result, DataValue};
+use yaoyorozu_data::{csv, json, DataError, Result};
 
 fn main() {
     if let Err(error) = run() {
@@ -79,6 +79,7 @@ fn print_usage() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use yaoyorozu_data::DataValue;
 
     #[test]
     fn detects_csv_and_json() {
