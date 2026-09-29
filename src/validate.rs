@@ -159,6 +159,7 @@ pub fn game_item_schema() -> Schema {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::BTreeMap;
 
     fn object(fields: BTreeMap<String, DataValue>) -> DataValue {
         DataValue::Object(fields)
