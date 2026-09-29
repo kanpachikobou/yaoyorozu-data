@@ -565,3 +565,9 @@ impl FumiContext {
             .ok_or_else(|| DataError::Message(format!("変数が見つかりません: {name}")))
     }
 }
+
+
+/// 変数名から実行時コンテキストの値を解決する。
+pub fn resolve_fumi_variable(context: &FumiContext, name: &str) -> Result<FumiValue> {
+    context.resolve(name)
+}
