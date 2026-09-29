@@ -197,6 +197,21 @@ mod tests {
     }
 
     #[test]
+    fn validates_with_schema() {
+        let store = DataStore::new(DataValue::Array(vec![
+            DataValue::Object(std::collections::BTreeMap::from([
+                ("id".to_string(), DataValue::Number(1001.0)),
+                ("name".to_string(), DataValue::String("狐".to_string())),
+                ("hp".to_string(), DataValue::Number(100.0)),
+                ("element".to_string(), DataValue::String("火".to_string())),
+                ("level".to_string(), DataValue::Number(1.0)),
+            ])),
+        ]));
+
+        assert!(store.validate(&crate::validate::game_enemy_schema()).is_ok());
+    }
+
+    #[test]
     fn unsupported_extension_returns_error() {
         let result = DataStore::load("data.txt");
         assert!(result.is_err());
