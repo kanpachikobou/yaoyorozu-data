@@ -86,6 +86,11 @@ impl DataStore {
         query::find_all(&self.value, field, expected)
     }
 
+    /// 保持しているデータをスキーマで検証する。
+    pub fn validate(&self, schema: &crate::Schema) -> Result<()> {
+        schema.validate(&self.value)
+    }
+
     pub fn push(&mut self, value: DataValue) -> Result<()> {
         self.value.push(value)
     }
