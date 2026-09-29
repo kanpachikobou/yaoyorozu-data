@@ -1,0 +1,16 @@
+[
+  {
+    "id": 5001,
+    "name": "焼き芋",
+    "category": "料理",
+    "result_item_id": 2001,
+    "quantity": 1
+  },
+  {
+    "id": 5002,
+    "name": "回復薬",
+    "category": "錬金",
+    "result_item_id": 2002,
+    "quantity": 1
+  }
+]
