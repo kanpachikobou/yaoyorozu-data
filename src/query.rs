@@ -121,7 +121,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(result, Some(&data[1]));
+        assert_eq!(result, Some(match &data { DataValue::Array(rows) => &rows[1], _ => unreachable!() }));
     }
 
     #[test]
@@ -140,8 +140,8 @@ mod tests {
         .unwrap();
 
         assert_eq!(result.len(), 2);
-        assert_eq!(result[0], &data[1]);
-        assert_eq!(result[1], &data[2]);
+        assert_eq!(result[0], match &data { DataValue::Array(rows) => &rows[1], _ => unreachable!() });
+        assert_eq!(result[1], match &data { DataValue::Array(rows) => &rows[2], _ => unreachable!() });
     }
 
     #[test]
