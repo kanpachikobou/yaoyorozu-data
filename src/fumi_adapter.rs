@@ -623,3 +623,32 @@ pub fn evaluate_binary(
 
     Ok(FumiValue::数値(value))
 }
+
+
+/// 実行時に評価できる式。
+#[derive(Debug, Clone, PartialEq)]
+pub enum FumiExpression {
+    値(FumiValue),
+    変数(String),
+    二項 {
+        左: Box<FumiExpression>,
+        演算子: FumiBinaryOperator,
+        右: Box<FumiExpression>,
+    },
+}
+
+/// 式をFumiValueまで評価する。
+pub fn evaluate_expression(
+    expression: &FumiExpression,
+    context: &FumiContext,
+) -> Result<FumiValue> {
+    match expression {
+        FumiExpression::値(value) => Ok(value.clone()),
+        FumiExpression::変数(name) => resolve_fumi_variable(context, name),
+        FumiExpression::二項 { 左, 演算子, 右 } => {
+            let left = evaluate_expression(左, context)?;
+            let right = evaluate_expression(右, context)?;
+            evaluate_binary(left, *演算子, right)
+        }
+    }
+}
