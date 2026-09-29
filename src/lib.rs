@@ -1,6 +1,7 @@
 pub mod csv;
 pub mod data;
 pub mod error;
+pub mod fumi;
 pub mod game_data;
 pub mod json;
 pub mod query;
@@ -9,6 +10,7 @@ pub mod validate;
 
 pub use data::DataValue;
 pub use error::{DataError, Result};
+pub use fumi::FumiData;
 pub use game_data::GameData;
 pub use store::DataStore;
 pub use validate::{FieldRule, FieldType, Schema};
