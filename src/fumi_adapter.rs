@@ -1,5 +1,30 @@
 use crate::{DataError, DataValue, FumiCommand, FumiData, FumiResult, Result};
 
+
+/// 詞側の値をデータ層へ渡すための中間値。
+#[derive(Debug, Clone, PartialEq)]
+pub enum FumiValue {
+    文字列(String),
+    数値(f64),
+    真偽(bool),
+    配列(Vec<FumiValue>),
+    なし,
+}
+
+impl FumiValue {
+    pub fn into_data_value(self) -> DataValue {
+        match self {
+            Self::文字列(value) => DataValue::String(value),
+            Self::数値(value) => DataValue::Number(value),
+            Self::真偽(value) => DataValue::Bool(value),
+            Self::配列(values) => DataValue::Array(
+                values.into_iter().map(Self::into_data_value).collect(),
+            ),
+            Self::なし => DataValue::Null,
+        }
+    }
+}
+
 /// 詞の既存命令種別から、データ操作命令へ変換するための種別。
 ///
 /// 実際の詞ASTを直接依存させず、八百万データ側では
