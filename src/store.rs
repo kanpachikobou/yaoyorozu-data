@@ -10,12 +10,10 @@ pub struct DataStore {
 }
 
 impl DataStore {
-    /// DataValue からストアを作成する。
     pub fn new(value: DataValue) -> Self {
         Self { value }
     }
 
-    /// CSV / JSON ファイルからストアを読み込む。
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();
         let input = fs::read_to_string(path)
@@ -42,17 +40,14 @@ impl DataStore {
         Ok(Self::new(value))
     }
 
-    /// 保持しているデータを取得する。
     pub fn value(&self) -> &DataValue {
         &self.value
     }
 
-    /// 保持しているデータを変更可能な形で取得する。
     pub fn value_mut(&mut self) -> &mut DataValue {
         &mut self.value
     }
 
-    /// 指定フィールドに一致する最初のデータを取得する。
     pub fn find<'a>(
         &'a self,
         field: &str,
@@ -61,7 +56,13 @@ impl DataStore {
         query::find(&self.value, field, expected)
     }
 
-    /// 指定フィールドに一致する最初のデータを変更可能な形で取得する。
+    pub fn find_by_id<'a>(
+        &'a self,
+        id: &DataValue,
+    ) -> Result<Option<&'a DataValue>> {
+        query::find_by_id(&self.value, id)
+    }
+
     pub fn find_mut<'a>(
         &'a mut self,
         field: &str,
@@ -70,7 +71,13 @@ impl DataStore {
         query::find_mut(&mut self.value, field, expected)
     }
 
-    /// 指定フィールドに一致するすべてのデータを取得する。
+    pub fn find_by_id_mut<'a>(
+        &'a mut self,
+        id: &DataValue,
+    ) -> Result<Option<&'a mut DataValue>> {
+        query::find_by_id_mut(&mut self.value, id)
+    }
+
     pub fn find_all<'a>(
         &'a self,
         field: &str,
@@ -79,12 +86,10 @@ impl DataStore {
         query::find_all(&self.value, field, expected)
     }
 
-    /// 配列データへ新しい値を追加する。
     pub fn push(&mut self, value: DataValue) -> Result<()> {
         self.value.push(value)
     }
 
-    /// 指定フィールドに一致する最初のデータを削除する。
     pub fn remove_first(
         &mut self,
         field: &str,
@@ -93,14 +98,14 @@ impl DataStore {
         query::remove_first(&mut self.value, field, expected)
     }
 
-    /// DataValueを取り出す。
+    pub fn remove_by_id(&mut self, id: &DataValue) -> Result<Option<DataValue>> {
+        query::remove_by_id(&mut self.value, id)
+    }
+
     pub fn into_value(self) -> DataValue {
         self.value
     }
 
-    /// CSV / JSON ファイルへ保存する。
-    ///
-    /// 出力形式はファイル拡張子から決定する。
     pub fn save<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let path = path.as_ref();
 
@@ -137,7 +142,6 @@ mod tests {
     fn creates_store_from_value() {
         let value = DataValue::object();
         let store = DataStore::new(value.clone());
-
         assert_eq!(store.value(), &value);
     }
 
@@ -155,7 +159,6 @@ mod tests {
 
         let store = DataStore::load(&input_path).unwrap();
         store.save(&output_path).unwrap();
-
         let restored = DataStore::load(&output_path).unwrap();
 
         assert_eq!(store, restored);
@@ -165,32 +168,27 @@ mod tests {
     }
 
     #[test]
-    fn find_and_modify_data() {
+    fn find_and_modify_by_id() {
         let mut store = DataStore::new(DataValue::Array(vec![
             DataValue::Object(std::collections::BTreeMap::from([
-                ("id".to_string(), DataValue::Number(1.0)),
+                ("id".to_string(), DataValue::Number(1001.0)),
                 ("name".to_string(), DataValue::String("狐".to_string())),
                 ("hp".to_string(), DataValue::Number(100.0)),
             ])),
             DataValue::Object(std::collections::BTreeMap::from([
-                ("id".to_string(), DataValue::Number(2.0)),
+                ("id".to_string(), DataValue::Number(1002.0)),
                 ("name".to_string(), DataValue::String("鬼".to_string())),
                 ("hp".to_string(), DataValue::Number(250.0)),
             ])),
         ]));
 
-        let expected = DataValue::String("狐".to_string());
-        let enemy = store.find_mut("name", &expected).unwrap().unwrap();
+        let id = DataValue::Number(1002.0);
+        let enemy = store.find_by_id_mut(&id).unwrap().unwrap();
 
-        enemy
-            .set("hp", DataValue::Number(150.0))
-            .expect("HPの更新に失敗しました。");
+        enemy.set("hp", DataValue::Number(500.0)).unwrap();
 
-        let enemy = store.find("name", &expected).unwrap().unwrap();
-        assert_eq!(
-            enemy.get("hp").and_then(DataValue::as_f64),
-            Some(150.0)
-        );
+        let enemy = store.find_by_id(&id).unwrap().unwrap();
+        assert_eq!(enemy.get("hp").and_then(DataValue::as_f64), Some(500.0));
     }
 
     #[test]
