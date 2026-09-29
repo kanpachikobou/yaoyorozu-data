@@ -1,4 +1,4 @@
-use crate::{DataError, DataValue, FumiData, Result};
+use crate::{DataError, DataValue, FumiCommand, FumiData, FumiResult, Result};
 
 /// 詞の既存命令種別から、データ操作命令へ変換するための種別。
 ///
