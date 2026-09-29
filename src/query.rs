@@ -22,6 +22,29 @@ pub fn find<'a>(value: &'a DataValue, field: &str, expected: &DataValue) -> Resu
     Ok(None)
 }
 
+/// DataValue の配列から、指定フィールドに一致する最初のオブジェクトを削除する。
+pub fn remove_first(
+    value: &mut DataValue,
+    field: &str,
+    expected: &DataValue,
+) -> Result<Option<DataValue>> {
+    let rows = match value {
+        DataValue::Array(rows) => rows,
+        _ => {
+            return Err(DataError::Message(
+                "検索対象は配列である必要があります。".to_string(),
+            ));
+        }
+    };
+
+    let index = rows.iter().position(|row| match row {
+        DataValue::Object(object) => object.get(field) == Some(expected),
+        _ => false,
+    });
+
+    Ok(index.map(|index| rows.remove(index)))
+}
+
 /// DataValue の配列から、指定フィールドに一致するすべてのオブジェクトを取得する。
 pub fn find_mut<'a>(
     value: &'a mut DataValue,
