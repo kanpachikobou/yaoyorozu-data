@@ -652,3 +652,31 @@ pub fn evaluate_expression(
         }
     }
 }
+
+
+/// 外部の詞ASTを直接依存させずに、ASTの構造を
+/// FumiExpressionへ渡すための中間表現。
+#[derive(Debug, Clone, PartialEq)]
+pub enum FumiAstExpression {
+    値(FumiValue),
+    変数(String),
+    二項 {
+        左: Box<FumiAstExpression>,
+        演算子: FumiBinaryOperator,
+        右: Box<FumiAstExpression>,
+    },
+}
+
+impl FumiAstExpression {
+    pub fn into_expression(self) -> FumiExpression {
+        match self {
+            Self::値(value) => FumiExpression::値(value),
+            Self::変数(name) => FumiExpression::変数(name),
+            Self::二項 { 左, 演算子, 右 } => FumiExpression::二項 {
+                左: Box::new(左.into_expression()),
+                演算子,
+                右: Box::new(右.into_expression()),
+            },
+        }
+    }
+}
