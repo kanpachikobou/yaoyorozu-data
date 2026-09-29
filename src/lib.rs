@@ -4,7 +4,9 @@ pub mod error;
 pub mod json;
 pub mod query;
 pub mod store;
+pub mod validate;
 
 pub use data::DataValue;
 pub use error::{DataError, Result};
 pub use store::DataStore;
+pub use validate::{FieldRule, FieldType, Schema};
